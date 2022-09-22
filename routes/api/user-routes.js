@@ -1,0 +1,105 @@
+const router = require('express').Router();
+const { User } = require('../../models');
+
+// GET /api/users THINK read all
+router.get('/', (req,res) => {
+    //access our User model and run .findAll() method
+    User.findAll({
+        attributes: {exclude: ['password']}//sets an attribute key and instructs the query to exclude the password column from being displayed.
+    }) //findAll() method lets us query all of the users from the user table in the db
+    //THINK: SELECT * FROM users;
+        .then(dbUserData => res.json(dbUserData))
+        .catch(err => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+//GET /api/user/1 THINK read one user based on id specified req.params.id
+router.get('/:id', (req,res)=>{
+    User.findOne({//we can actually pass an argument through the findOne() method to help specify the query
+        //instead of building a long SQL query SELECT * FROM users WHERE id = 1;
+        attributes: {exclude: ['password']},
+        where: {
+            id: req.params.id
+        }
+    })
+        .then(dbUserData=> {
+            if (!dbUserData) {
+                res.status(404).json({message: 'No user found with this id'})
+                return;
+            }
+            res.json(dbUserData);
+        })
+        .catch(err=>{
+            console.log(err);
+            res,status(500).json(err);
+        })
+});
+
+//POST /api/users THINK create
+router.post('/', (req,res)=> {
+    //expects {username: 'string', email: '<string>@<string>.<string>', password: 'string'}
+    User.create({
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password
+    })
+        .then(dbUserData => res.json(dbUserData))
+        .catch(err => {
+            console.log(err);
+            res.status(500).json(err);
+        })
+    //SQL equivalent:
+        //INSERT INTO users
+        //  (username, email, password)
+        //VALUES
+        // ('username', 'email@email.com', 'password')
+});
+
+//PUT /api/users/1 THINK update
+router.put('/:id', (req,res)=>{
+    //expects {username,email,password}
+    //if req.body has exact key/value pairs to match the model, you can just use req.body instead
+    User.update(req.body, {
+        where: {
+            id: req.params.id
+        }
+    })
+        .then(dbUserData => {
+            if(!dbUserData[0]) { // index[0] is the id(auto-populated in User model)
+                res.status(404)
+            }
+            res.json(dbUserData);
+        })
+        .catch(err=>{
+            console.log(err);
+            res.status(500).json(err);
+        })
+        /*
+        THINK: UPDATE users
+        SET username = 'username', email = 'email@email.com', password='password'
+        WHERE id =1 (actually its :id) but example route is /api/users/1;
+        */
+});
+
+//DELETE /api/users/1 THINK delete
+router.delete('/:id', (req,res)=>{
+    User.destroy({
+        where: {
+            id: req.params.id
+        }
+    })
+        .then(dbUserData => {
+            if (!dbUserData) {
+                res.status(404).json({message: 'No user found with this id'})
+            }
+            res.json(dbUserData);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json(err)
+        })
+});
+
+module.exports = router;
