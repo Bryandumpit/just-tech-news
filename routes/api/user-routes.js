@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User } = require('../../models');
+const { User, Post, Vote } = require('../../models');
 
 // GET /api/users THINK read all
 router.get('/', (req,res) => {
@@ -19,6 +19,18 @@ router.get('/', (req,res) => {
 router.get('/:id', (req,res)=>{
     User.findOne({//we can actually pass an argument through the findOne() method to help specify the query
         //instead of building a long SQL query SELECT * FROM users WHERE id = 1;
+        include: [
+            {
+                model: Post,
+                attributes: ['id','title','post_url','created_at']
+            },
+            {
+                model: Post,
+                attributes: ['title'],
+                through: Vote,
+                as: 'voted_posts'
+            }
+        ],
         attributes: {exclude: ['password']},
         where: {
             id: req.params.id
