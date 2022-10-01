@@ -1,0 +1,14 @@
+<div class="comments">
+    {{#each this}}
+    <section class="comment">
+        <div class="meta">
+            {{user.username}} on {{format_date created_at}}
+            {{!--format_date was imported from helpers into server 
+            and then from server into exphbs.create({})--}}
+        </div>
+        <div class="text">
+            {{comment_text}}
+        </div>
+    </section>
+    {{/each}}
+</div>
